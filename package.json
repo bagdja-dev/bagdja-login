@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/next-with-port.js dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/next-with-port.js start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },

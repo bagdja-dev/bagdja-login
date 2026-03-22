@@ -14,8 +14,10 @@
     "terms": "Términos",
     "registered": "¡Registro exitoso! Por favor revise su correo electrónico para verificar su cuenta.",
     "verified": "¡Correo electrónico verificado exitosamente! Ahora puede iniciar sesión.",
+    "resetSuccess": "¡Contraseña actualizada! Inicia sesión con tu nueva contraseña.",
     "loginFailed": "Error al iniciar sesión. Por favor intente de nuevo.",
-    "noRedirectUrl": "No se proporcionó URL de redirección. Por favor contacte al soporte."
+    "noRedirectUrl": "No se proporcionó URL de redirección. Por favor contacte al soporte.",
+    "forgotPassword": "¿Olvidaste tu contraseña?"
   },
   "register": {
     "title": "Crea tu cuenta de Bagdja",
@@ -39,5 +41,28 @@
   "common": {
     "loading": "Cargando...",
     "or": "O"
+  },
+  "forgotPassword": {
+    "title": "Olvidé mi contraseña",
+    "subtitle": "Te enviaremos un enlace de restablecimiento por correo.",
+    "email": "Correo electrónico",
+    "sendLink": "Enviar enlace",
+    "sending": "Enviando...",
+    "backToLogin": "Volver al inicio de sesión"
+  },
+  "resetPassword": {
+    "title": "Restablecer contraseña",
+    "subtitle": "Establece una nueva contraseña para tu cuenta.",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "update": "Actualizar contraseña",
+    "updating": "Actualizando...",
+    "invalidOrExpired": "Este enlace no es válido o ha expirado.",
+    "requestNew": "Solicitar nuevo enlace",
+    "backToLogin": "Volver al inicio de sesión",
+    "missingToken": "Falta el token de restablecimiento.",
+    "mismatch": "La confirmación no coincide.",
+    "failed": "No se pudo restablecer la contraseña.",
+    "success": "Contraseña actualizada correctamente."
   }
 }

@@ -15,8 +15,15 @@ import type {
   RegisterRequest, 
   User, 
   ApiError,
+  MeResponse,
+  ClientApp,
   ClientTokenRequest,
   ClientTokenResponse,
+  ForgotPasswordRequest,
+  MessageResponse,
+  ResetPasswordRequest,
+  ValidateResetTokenRequest,
+  ValidateResetTokenResponse,
 } from '@/types';
 
 const AUTH_API_BASE = process.env.NEXT_PUBLIC_AUTH_API || 'https://auth.bagdja.com';
@@ -170,6 +177,41 @@ export async function validateToken(token: string): Promise<void> {
   });
 }
 
+export async function getMe(token: string): Promise<MeResponse> {
+  return apiRequest<MeResponse>('/auth/me', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function getOrganizationClientApps(
+  organizationId: string,
+  token: string,
+): Promise<ClientApp[]> {
+  const params = new URLSearchParams({ organizationId });
+  return apiRequest<ClientApp[]>(`/auth/client-apps?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function getOrganizationClientAppsPublic(
+  organizationId: string,
+  token: string,
+): Promise<ClientApp[]> {
+  const params = new URLSearchParams({ organizationId });
+  return apiRequest<ClientApp[]>(
+    `/auth/client-apps/public?${params.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+}
+
 export async function refreshAccessToken(token: string): Promise<string> {
   const result = await apiRequest<{ access_token: string }>('/auth/refresh', {
     method: 'POST',
@@ -183,4 +225,25 @@ export async function refreshAccessToken(token: string): Promise<string> {
   }
 
   return result.access_token;
+}
+
+export async function forgotPassword(data: ForgotPasswordRequest): Promise<MessageResponse> {
+  return apiRequest<MessageResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function validateResetToken(data: ValidateResetTokenRequest): Promise<ValidateResetTokenResponse> {
+  return apiRequest<ValidateResetTokenResponse>('/auth/reset-password/validate', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function resetPassword(data: ResetPasswordRequest): Promise<MessageResponse> {
+  return apiRequest<MessageResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

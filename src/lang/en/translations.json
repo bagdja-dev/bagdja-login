@@ -14,8 +14,10 @@
     "terms": "Terms",
     "registered": "Registration successful! Please check your email to verify your account.",
     "verified": "Email verified successfully! You can now log in.",
+    "resetSuccess": "Password updated successfully! Please sign in with your new password.",
     "loginFailed": "Login failed. Please try again.",
-    "noRedirectUrl": "No redirect URL provided. Please contact support."
+    "noRedirectUrl": "No redirect URL provided. Please contact support.",
+    "forgotPassword": "Forgot password?"
   },
   "register": {
     "title": "Create your Bagdja account",
@@ -39,5 +41,28 @@
   "common": {
     "loading": "Loading...",
     "or": "Or"
+  },
+  "forgotPassword": {
+    "title": "Forgot password",
+    "subtitle": "We will email you a reset link.",
+    "email": "Email address",
+    "sendLink": "Send reset link",
+    "sending": "Sending...",
+    "backToLogin": "Back to login"
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "subtitle": "Set a new password for your account.",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "update": "Update password",
+    "updating": "Updating...",
+    "invalidOrExpired": "This reset link is invalid or expired.",
+    "requestNew": "Request new link",
+    "backToLogin": "Back to login",
+    "missingToken": "Missing reset token.",
+    "mismatch": "Password confirmation does not match.",
+    "failed": "Failed to reset password.",
+    "success": "Password updated successfully."
   }
 }

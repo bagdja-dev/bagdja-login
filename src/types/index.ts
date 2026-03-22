@@ -15,6 +15,54 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface MeResponse {
+  user: User;
+  clientApp: {
+    id: string;
+    appId: string;
+    appName: string;
+  } | null;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface ClientApp {
+  id: string;
+  appId: string;
+  appName: string;
+  organizationId?: string;
+  isActive?: boolean;
+  description?: string | null;
+  contactEmail?: string | null;
+  logo?: string | null;
+  allowedOrigins?: string[] | null;
+  ssoUrl?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  lastUsedAt?: string | null;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+  redirectUri?: string;
+}
+
+export interface ValidateResetTokenRequest {
+  token: string;
+}
+
+export interface ValidateResetTokenResponse {
+  valid: boolean;
+  expiresAt?: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
 export interface User {
   id: string;
   email: string;
