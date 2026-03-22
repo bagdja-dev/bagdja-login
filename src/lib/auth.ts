@@ -7,6 +7,7 @@
 
 const CLIENT_TOKEN_KEY = 'bagdja_client_token';
 const CLIENT_TOKEN_EXPIRY_KEY = 'bagdja_client_token_expiry';
+const USER_TOKEN_KEY = 'bagdja_user_token';
 
 /**
  * Get redirect URL from query params or return default
@@ -68,6 +69,31 @@ export function removeClientToken(): void {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(CLIENT_TOKEN_KEY);
     sessionStorage.removeItem(CLIENT_TOKEN_EXPIRY_KEY);
+  }
+}
+
+/**
+ * Store logged-in user JWT token in sessionStorage (only for this login UI flow).
+ */
+export function setUserToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem(USER_TOKEN_KEY, token);
+  }
+}
+
+/**
+ * Get logged-in user JWT token from sessionStorage.
+ */
+export function getUserToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return sessionStorage.getItem(USER_TOKEN_KEY);
+  }
+  return null;
+}
+
+export function removeUserToken(): void {
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(USER_TOKEN_KEY);
   }
 }
 

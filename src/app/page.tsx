@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { login, getGoogleLoginUrl } from '@/lib/api';
-import { getRedirectUrl, isValidRedirectUrl, buildRedirectUrl } from '@/lib/auth';
+import { getRedirectUrl, isValidRedirectUrl, buildRedirectUrl, setUserToken } from '@/lib/auth';
 import { getLanguageFromUrl, getTranslations } from '@/lib/translations';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Input } from '@/ui/input';
@@ -44,11 +44,14 @@ function LoginContent() {
     // Check for success messages from query params
     const registered = searchParams.get('registered');
     const verified = searchParams.get('verified');
+    const reset = searchParams.get('reset');
     
     if (registered === 'true') {
       setSuccess(t.login.registered);
     } else if (verified === 'true') {
       setSuccess(t.login.verified);
+    } else if (reset === 'true') {
+      setSuccess(t.login.resetSuccess);
     }
 
     // Load saved accounts from localStorage
@@ -109,7 +112,8 @@ function LoginContent() {
         const finalUrl = buildRedirectUrl(redirectUrl, response.access_token);
         window.location.href = finalUrl;
       } else {
-        setError(t.login.noRedirectUrl);
+        setUserToken(response.access_token);
+        router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
       }
     } catch (err) {
       const apiError = err as ApiError;
@@ -128,7 +132,8 @@ function LoginContent() {
         window.location.href = finalUrl;
         return;
       } else {
-        setError(t.login.noRedirectUrl);
+        setUserToken(account.token);
+        router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
         return;
       }
     }
@@ -310,6 +315,14 @@ function LoginContent() {
                     disabled={loading}
                     className="bg-white"
                   />
+                  <div className="text-right">
+                    <a
+                      href={`/forgot-password${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+                      className="text-sm text-[var(--action-primary)] hover:underline"
+                    >
+                      {t.login.forgotPassword}
+                    </a>
+                  </div>
                 </div>
 
                 <div className="space-y-3">

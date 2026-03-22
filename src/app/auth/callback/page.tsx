@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getRedirectUrl, isValidRedirectUrl, buildRedirectUrl } from '@/lib/auth';
+import { getRedirectUrl, isValidRedirectUrl, buildRedirectUrl, setUserToken } from '@/lib/auth';
 import { getLanguageFromUrl, getTranslations } from '@/lib/translations';
 import { validateToken, refreshAccessToken } from '@/lib/api';
 
@@ -22,7 +22,8 @@ function CallbackContent() {
         try {
           await validateToken(token);
           if (!redirectUrl || !isValidRedirectUrl(redirectUrl)) {
-            setError(t.callback.invalidRedirect);
+            setUserToken(token);
+            router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
             return;
           }
           const finalUrl = buildRedirectUrl(redirectUrl, token);
@@ -32,7 +33,8 @@ function CallbackContent() {
           try {
             const newToken = await refreshAccessToken(token);
             if (!redirectUrl || !isValidRedirectUrl(redirectUrl)) {
-              setError(t.callback.invalidRedirect);
+              setUserToken(newToken);
+              router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
               return;
             }
             const finalUrl = buildRedirectUrl(redirectUrl, newToken);

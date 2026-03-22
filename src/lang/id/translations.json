@@ -14,8 +14,10 @@
     "terms": "Syarat",
     "registered": "Registrasi berhasil! Silakan periksa email Anda untuk memverifikasi akun.",
     "verified": "Email berhasil diverifikasi! Anda sekarang dapat masuk.",
+    "resetSuccess": "Password berhasil diperbarui! Silakan masuk dengan password baru Anda.",
     "loginFailed": "Login gagal. Silakan coba lagi.",
-    "noRedirectUrl": "Tidak ada redirect URL yang diberikan. Silakan hubungi dukungan."
+    "noRedirectUrl": "Tidak ada redirect URL yang diberikan. Silakan hubungi dukungan.",
+    "forgotPassword": "Lupa password?"
   },
   "register": {
     "title": "Buat akun Bagdja Anda",
@@ -39,5 +41,28 @@
   "common": {
     "loading": "Memuat...",
     "or": "Atau"
+  },
+  "forgotPassword": {
+    "title": "Lupa password",
+    "subtitle": "Kami akan mengirim link reset ke email Anda.",
+    "email": "Alamat email",
+    "sendLink": "Kirim link reset",
+    "sending": "Mengirim...",
+    "backToLogin": "Kembali ke login"
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "subtitle": "Buat password baru untuk akun Anda.",
+    "newPassword": "Password baru",
+    "confirmNewPassword": "Konfirmasi password baru",
+    "update": "Perbarui password",
+    "updating": "Memperbarui...",
+    "invalidOrExpired": "Link reset tidak valid atau sudah kedaluwarsa.",
+    "requestNew": "Minta link baru",
+    "backToLogin": "Kembali ke login",
+    "missingToken": "Token reset tidak ditemukan.",
+    "mismatch": "Konfirmasi password tidak cocok.",
+    "failed": "Gagal reset password.",
+    "success": "Password berhasil diperbarui."
   }
 }
