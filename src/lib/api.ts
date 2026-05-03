@@ -28,10 +28,6 @@ import type {
 
 const AUTH_API_BASE = process.env.NEXT_PUBLIC_AUTH_API || 'https://auth.bagdja.com';
 
-// Client app credentials from environment variables
-const CLIENT_APP_ID = process.env.NEXT_PUBLIC_CLIENT_APP_ID || 'user-console';
-const CLIENT_APP_SECRET = process.env.NEXT_PUBLIC_CLIENT_APP_SECRET || 'a9F3kL2P8QwZx7C0M5eB1R4H6TnUJDYVSm';
-
 /**
  * Get or refresh client app token (x-api-token)
  */
@@ -49,19 +45,13 @@ async function ensureClientToken(): Promise<string> {
  * Get client token from server
  */
 async function getClientTokenFromServer(): Promise<string> {
-  const url = `${AUTH_API_BASE}/auth/client`;
-  
-  const requestBody: ClientTokenRequest = {
-    app_id: CLIENT_APP_ID,
-    app_secret: CLIENT_APP_SECRET,
-  };
+  const isServer = typeof window === 'undefined';
+  const frontendBase =
+    process.env.NEXT_PUBLIC_FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
 
-  const response = await fetch(url, {
+  const response = await fetch(isServer ? `${frontendBase}/api/client-token` : '/api/client-token', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
+    headers: { 'Content-Type': 'application/json' },
   });
 
   if (!response.ok) {

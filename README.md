@@ -43,10 +43,10 @@ npm install
    # Auth Service API Base URL
    NEXT_PUBLIC_AUTH_API=https://auth.bagdja.com
    
-   # Client App Credentials
-   # These are used to authenticate the login service with the auth API
-   NEXT_PUBLIC_CLIENT_APP_ID=user-console
-   NEXT_PUBLIC_CLIENT_APP_SECRET=a9F3kL2P8QwZx7C0M5eB1R4H6TnUJDYVSm
+   # Server-side Client App Credentials (DO NOT prefix with NEXT_PUBLIC_)
+   # Used by this Next.js app on the server to obtain an x-api-token.
+   BAGDJA_CLIENT_APP_ID=user-console
+   BAGDJA_CLIENT_APP_SECRET=your_client_app_secret
    
    # Optional: Frontend URL (for development)
    # NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
@@ -133,4 +133,4 @@ if (token) {
 
 ## License
 
-Private project for Bagdja Development Group
+Private project for Bagdja Digital
