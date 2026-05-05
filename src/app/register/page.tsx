@@ -37,11 +37,25 @@ function RegisterContent() {
     setLoading(true);
 
     try {
+      const frontendBaseUrl = (process.env.NEXT_PUBLIC_FRONTEND_URL || window.location.origin).replace(/\/$/, '');
+      let redirectUri: string | undefined;
+      try {
+        const url = new URL(`${frontendBaseUrl}/register-success`);
+        if (redirectUrl) {
+          url.searchParams.set('redirect_url', redirectUrl);
+        }
+        url.searchParams.set('lang', lang);
+        redirectUri = url.toString();
+      } catch {
+        // Fallback for unexpected invalid URL values
+        redirectUri = `${frontendBaseUrl}/register-success?lang=${encodeURIComponent(lang)}${redirectUrl ? `&redirect_url=${encodeURIComponent(redirectUrl)}` : ''}`;
+      }
+
       const registerData = { 
         email, 
         username, 
         password,
-        redirectUri: redirectUrl ? `${window.location.origin}/auth/verify-success${redirectUrl ? `?redirect_url=${encodeURIComponent(redirectUrl)}` : ''}` : undefined,
+        redirectUri,
       };
       
       await register(registerData);
