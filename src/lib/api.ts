@@ -176,10 +176,10 @@ export async function getMe(token: string): Promise<MeResponse> {
 }
 
 export async function getOrganizationClientApps(
-  organizationId: string,
+  orgId: string,
   token: string,
 ): Promise<ClientApp[]> {
-  const params = new URLSearchParams({ organizationId });
+  const params = new URLSearchParams({ orgId });
   return apiRequest<ClientApp[]>(`/auth/client-apps?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -188,10 +188,10 @@ export async function getOrganizationClientApps(
 }
 
 export async function getOrganizationClientAppsPublic(
-  organizationId: string,
+  orgId: string,
   token: string,
 ): Promise<ClientApp[]> {
-  const params = new URLSearchParams({ organizationId });
+  const params = new URLSearchParams({ orgId });
   return apiRequest<ClientApp[]>(
     `/auth/client-apps/public?${params.toString()}`,
     {

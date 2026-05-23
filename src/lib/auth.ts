@@ -18,7 +18,7 @@ export function getRedirectUrl(): string | null {
   }
   
   const params = new URLSearchParams(window.location.search);
-  return params.get('redirect_url');
+  return params.get('redirect_url') || params.get('authorize_redirect');
 }
 
 /**
@@ -73,20 +73,42 @@ export function removeClientToken(): void {
 }
 
 /**
- * Store logged-in user JWT token in sessionStorage (only for this login UI flow).
+ * Store logged-in user JWT token in sessionStorage and cookie.
  */
 export function setUserToken(token: string): void {
   if (typeof window !== 'undefined') {
     sessionStorage.setItem(USER_TOKEN_KEY, token);
+    
+    // Also set a cookie so the server-side routes can access it
+    // Using a 24-hour expiry to match the sessionStorage lifetime
+    const d = new Date();
+    d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
+    const expires = "expires=" + d.toUTCString();
+    document.cookie = `bagdja_auth_token=${token};${expires};path=/;SameSite=Lax`;
   }
 }
 
 /**
- * Get logged-in user JWT token from sessionStorage.
+ * Get logged-in user JWT token from sessionStorage or cookie.
  */
 export function getUserToken(): string | null {
   if (typeof window !== 'undefined') {
-    return sessionStorage.getItem(USER_TOKEN_KEY);
+    const token = sessionStorage.getItem(USER_TOKEN_KEY);
+    if (token) return token;
+    
+    // Fallback to cookie
+    const name = "bagdja_auth_token=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
   }
   return null;
 }
@@ -94,6 +116,7 @@ export function getUserToken(): string | null {
 export function removeUserToken(): void {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(USER_TOKEN_KEY);
+    document.cookie = "bagdja_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   }
 }
 
@@ -103,6 +126,11 @@ export function removeUserToken(): void {
 export function isValidRedirectUrl(url: string | null): boolean {
   if (!url || typeof url !== 'string' || url.trim().length === 0) {
     return false;
+  }
+  
+  // Allow relative paths starting with /
+  if (url.startsWith('/')) {
+    return true;
   }
   
   try {
