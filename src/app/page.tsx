@@ -40,6 +40,9 @@ function LoginContent() {
     if (redirect && isValidRedirectUrl(redirect)) {
       setRedirectUrl(redirect);
     }
+    // #region debug-point C:login-page-redirect-param
+    fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'C', location: 'bagdja-login/src/app/page.tsx:useEffect', msg: '[DEBUG] login page loaded with redirect params', data: { redirect, isValidRedirect: !!redirect && isValidRedirectUrl(redirect), authorizeRedirect: searchParams.get('authorize_redirect'), redirectUrlParam: searchParams.get('redirect_url') }, ts: Date.now() }) }).catch(() => {});
+    // #endregion
 
     // Check for success messages from query params
     const registered = searchParams.get('registered');
@@ -73,6 +76,19 @@ function LoginContent() {
 
     try {
       const response = await login({ username, password });
+      // #region debug-point A:login-success
+      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'A', location: 'bagdja-login/src/app/page.tsx:handleSubmit', msg: '[DEBUG] login api returned success', data: { hasAccessToken: !!response.access_token, email: response.user?.email, redirectUrl, isOAuthAuthorize: !!redirectUrl && redirectUrl.includes('/oauth/authorize') }, ts: Date.now() }) }).catch(() => {});
+      // #endregion
+      
+      // Set session cookie via API route for better reliability
+      const sessionResponse = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: response.access_token }),
+      });
+      // #region debug-point A:session-cookie-set
+      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'A', location: 'bagdja-login/src/app/page.tsx:handleSubmit', msg: '[DEBUG] session api response received', data: { sessionStatus: sessionResponse.status, sessionOk: sessionResponse.ok, hasDocumentCookie: typeof document !== 'undefined' && document.cookie.includes('bagdja_auth_token=') }, ts: Date.now() }) }).catch(() => {});
+      // #endregion
       
       // Save account to localStorage with token
       try {
@@ -109,8 +125,20 @@ function LoginContent() {
 
       // Redirect to redirect_url with token
       if (redirectUrl) {
-        const finalUrl = buildRedirectUrl(redirectUrl, response.access_token);
-        window.location.href = finalUrl;
+        // If it's an OAuth authorize redirect, go back to it directly without appending token in URL
+        const isOAuthAuthorize = redirectUrl.includes('/oauth/authorize');
+        // #region debug-point C:post-login-redirect-choice
+        fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'C', location: 'bagdja-login/src/app/page.tsx:handleSubmit', msg: '[DEBUG] deciding post-login redirect target', data: { redirectUrl, isOAuthAuthorize }, ts: Date.now() }) }).catch(() => {});
+        // #endregion
+        
+        if (isOAuthAuthorize) {
+          // Set user token in sessionStorage for the authorize route to use
+          setUserToken(response.access_token);
+          window.location.href = redirectUrl;
+        } else {
+          const finalUrl = buildRedirectUrl(redirectUrl, response.access_token);
+          window.location.href = finalUrl;
+        }
       } else {
         setUserToken(response.access_token);
         router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
@@ -126,8 +154,21 @@ function LoginContent() {
   const handleSelectAccount = async (account: SavedAccount) => {
     // Check if account has valid token
     if (account.token && account.tokenExpiry && account.tokenExpiry > Date.now()) {
+      // Set session cookie via API route
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: account.token }),
+      });
+
       // Token is still valid, redirect immediately
       if (redirectUrl) {
+        const isOAuthAuthorize = redirectUrl.includes('/oauth/authorize');
+        if (isOAuthAuthorize) {
+          setUserToken(account.token);
+          window.location.href = redirectUrl;
+          return;
+        }
         const finalUrl = buildRedirectUrl(redirectUrl, account.token);
         window.location.href = finalUrl;
         return;
@@ -153,9 +194,12 @@ function LoginContent() {
     setUsername('');
   };
 
-  const handleLogout = (e: React.MouseEvent, account: SavedAccount) => {
+  const handleLogout = async (e: React.MouseEvent, account: SavedAccount) => {
     e.stopPropagation(); // Prevent triggering handleSelectAccount
     
+    // Clear session cookie via API route
+    await fetch('/api/auth/session', { method: 'DELETE' });
+
     try {
       const saved = localStorage.getItem('bagdja_saved_accounts');
       if (saved) {
