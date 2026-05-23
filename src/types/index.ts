@@ -32,7 +32,7 @@ export interface ClientApp {
   id: string;
   appId: string;
   appName: string;
-  organizationId?: string;
+  orgId?: string;
   isActive?: boolean;
   description?: string | null;
   contactEmail?: string | null;

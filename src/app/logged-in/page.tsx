@@ -8,7 +8,7 @@ import { getUserToken, removeUserToken } from '@/lib/auth';
 import { getMe, getOrganizationClientAppsPublic } from '@/lib/api';
 import type { ClientApp, MeResponse } from '@/types';
 
-const LANDING_ORG_ID = '70e5e0a0-8f06-45c1-992c-aa13cc5e6814';
+const LANDING_ORG_ID = 'bagdja';
 
 function buildSsoUrl(ssoUrl: string, token: string): string {
   if (ssoUrl.includes('{token}')) {
@@ -70,7 +70,10 @@ function LoggedInContent() {
     window.location.href = buildSsoUrl(app.ssoUrl, token);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear session cookie via API route
+    await fetch('/api/auth/session', { method: 'DELETE' });
+    
     removeUserToken();
     router.push(`/?lang=${encodeURIComponent(lang)}`);
   };
