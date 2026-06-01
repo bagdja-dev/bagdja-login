@@ -21,24 +21,56 @@ function CallbackContent() {
       const validateAndRedirect = async () => {
         try {
           await validateToken(token);
+          
+          // Set session cookie via API route first
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token }),
+          });
+
           if (!redirectUrl || !isValidRedirectUrl(redirectUrl)) {
             setUserToken(token);
             router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
             return;
           }
-          const finalUrl = buildRedirectUrl(redirectUrl, token);
-          window.location.href = finalUrl;
+
+          // If it's an OAuth authorize redirect, go back to it directly without appending token in URL
+          const isOAuthAuthorize = redirectUrl.includes('/oauth/authorize');
+          if (isOAuthAuthorize) {
+            setUserToken(token);
+            window.location.href = redirectUrl;
+          } else {
+            const finalUrl = buildRedirectUrl(redirectUrl, token);
+            window.location.href = finalUrl;
+          }
         } catch (err: unknown) {
           // Try refresh path if validation failed
           try {
             const newToken = await refreshAccessToken(token);
+
+            // Set session cookie via API route first
+            await fetch('/api/auth/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: newToken }),
+            });
+
             if (!redirectUrl || !isValidRedirectUrl(redirectUrl)) {
               setUserToken(newToken);
               router.push(`/logged-in?lang=${encodeURIComponent(lang)}`);
               return;
             }
-            const finalUrl = buildRedirectUrl(redirectUrl, newToken);
-            window.location.href = finalUrl;
+
+            // If it's an OAuth authorize redirect, go back to it directly without appending token in URL
+            const isOAuthAuthorize = redirectUrl.includes('/oauth/authorize');
+            if (isOAuthAuthorize) {
+              setUserToken(newToken);
+              window.location.href = redirectUrl;
+            } else {
+              const finalUrl = buildRedirectUrl(redirectUrl, newToken);
+              window.location.href = finalUrl;
+            }
           } catch (refreshErr) {
             console.error('Token refresh failed', refreshErr);
             setError(t.callback.sessionExpired);
