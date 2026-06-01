@@ -84,7 +84,16 @@ export function setUserToken(token: string): void {
     const d = new Date();
     d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
     const expires = "expires=" + d.toUTCString();
-    document.cookie = `bagdja_auth_token=${token};${expires};path=/;SameSite=Lax`;
+
+    const cookieParts = [`bagdja_auth_token=${encodeURIComponent(token)}`, expires, 'path=/', 'SameSite=None', 'max-age=86400'];
+    if (window.location.hostname.endsWith('.bagdja.com')) {
+      cookieParts.push('Domain=.bagdja.com');
+    }
+    if (window.location.protocol === 'https:') {
+      cookieParts.push('Secure');
+    }
+
+    document.cookie = cookieParts.join('; ');
   }
 }
 
@@ -116,7 +125,8 @@ export function getUserToken(): string | null {
 export function removeUserToken(): void {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(USER_TOKEN_KEY);
-    document.cookie = "bagdja_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    const domain = window.location.hostname.endsWith('.bagdja.com') ? 'Domain=.bagdja.com;' : '';
+    document.cookie = `bagdja_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; ${domain}`;
   }
 }
 
