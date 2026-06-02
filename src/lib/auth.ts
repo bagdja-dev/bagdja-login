@@ -85,7 +85,7 @@ export function setUserToken(token: string): void {
     d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
     const expires = "expires=" + d.toUTCString();
 
-    const cookieParts = [`bagdja_auth_token=${encodeURIComponent(token)}`, expires, 'path=/', 'SameSite=None', 'max-age=86400'];
+    const cookieParts = [`bagdja_auth_token=${encodeURIComponent(token)}`, expires, 'path=/', 'SameSite=Lax', 'max-age=86400'];
     if (window.location.hostname.endsWith('.bagdja.com')) {
       cookieParts.push('Domain=.bagdja.com');
     }
