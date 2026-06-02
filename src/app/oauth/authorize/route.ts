@@ -153,14 +153,21 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
 
     // Verify client is registered and redirect_uri is whitelisted
-    // For now, we'll accept the redirect_uri but in production this should be validated
-    // against registered OAuth clients in the database
+    const clientResponse = await fetch(`${AUTH_API_BASE}/auth/client/public/${params.client_id}`);
+    if (!clientResponse.ok) {
+      return NextResponse.json(
+        { error: 'Invalid client_id' },
+        { status: 400 }
+      );
+    }
+    const client = await clientResponse.json();
     
-    // TODO: Validate redirect_uri against registered OAuth clients in database
-    // const clientResponse = await fetch(`${AUTH_API_BASE}/auth/client/${params.client_id}`);
-    // if (!clientResponse.ok) return error
-    // const client = await clientResponse.json()
-    // if (!client.oauth_redirect_uris.includes(params.redirect_uri)) return error
+    if (!client.oauthRedirectUris || !client.oauthRedirectUris.includes(params.redirect_uri)) {
+      return NextResponse.json(
+        { error: 'Invalid redirect_uri' },
+        { status: 400 }
+      );
+    }
 
     // Generate authorization code
     const codeResponse = await fetch(`${AUTH_API_BASE}/oauth/authorization-code`, {

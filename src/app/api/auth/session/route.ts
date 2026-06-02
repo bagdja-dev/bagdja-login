@@ -41,7 +41,7 @@ export async function DELETE(request: NextRequest) {
   const response = NextResponse.json({ success: true });
   const host = request.headers.get('host') || '';
   if (host.endsWith('.bagdja.com')) {
-    response.cookies.delete('bagdja_auth_token', { domain: '.bagdja.com', path: '/' });
+    response.cookies.delete({ name: 'bagdja_auth_token', domain: '.bagdja.com', path: '/' });
   } else {
     response.cookies.delete('bagdja_auth_token');
   }

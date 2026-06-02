@@ -145,9 +145,14 @@ export function isValidRedirectUrl(url: string | null): boolean {
   
   try {
     const urlObj = new URL(url.trim());
-    // Only allow http/https protocols
-    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+    // Allow http/https protocols and custom mobile app schemes
+    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:' && !urlObj.protocol.startsWith('com.bagdja.')) {
       return false;
+    }
+    
+    // For custom schemes, we consider them valid since they launch the app
+    if (urlObj.protocol.startsWith('com.')) {
+      return true;
     }
     // Only allow bagdja.com subdomains or localhost for development
     const hostname = urlObj.hostname.toLowerCase();
