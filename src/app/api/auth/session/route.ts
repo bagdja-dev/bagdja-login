@@ -47,3 +47,22 @@ export async function DELETE(request: NextRequest) {
   }
   return response;
 }
+
+/** Browser/mobile logout via GET — clears SSO cookie then redirects to login. */
+export async function GET(request: NextRequest) {
+  const loginUrl = new URL('/', request.url);
+  const response = NextResponse.redirect(loginUrl);
+  const host = request.headers.get('host') || '';
+
+  if (host.endsWith('.bagdja.com')) {
+    response.cookies.delete({
+      name: 'bagdja_auth_token',
+      domain: '.bagdja.com',
+      path: '/',
+    });
+  } else {
+    response.cookies.delete('bagdja_auth_token');
+  }
+
+  return response;
+}
