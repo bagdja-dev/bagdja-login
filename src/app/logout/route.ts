@@ -1,23 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { buildLogoutRedirectResponse } from '@/lib/session-cookie';
 
 /**
- * Clears the SSO session cookie so mobile/web clients can fully sign out.
- * GET /logout
+ * Clears the SSO session cookie and optionally redirects back to a mobile app.
+ * GET /logout?redirect_uri=com.bagdja.wallet:/logout-callback
  */
 export async function GET(request: NextRequest) {
-  const loginUrl = new URL('/', request.url);
-  const response = NextResponse.redirect(loginUrl);
-  const host = request.headers.get('host') || '';
-
-  if (host.endsWith('.bagdja.com')) {
-    response.cookies.delete({
-      name: 'bagdja_auth_token',
-      domain: '.bagdja.com',
-      path: '/',
-    });
-  } else {
-    response.cookies.delete('bagdja_auth_token');
-  }
-
-  return response;
+  return buildLogoutRedirectResponse(request);
 }

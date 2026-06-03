@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidCodeChallenge, isValidBase64url, buildOAuthCallbackUrl } from '@/lib/oauth';
+import { clearAuthCookie } from '@/lib/session-cookie';
 import { cookies } from 'next/headers';
 
 const AUTH_API_BASE = process.env.NEXT_PUBLIC_AUTH_API || 'https://auth.bagdja.com';
@@ -23,18 +24,6 @@ interface AuthorizeParams {
   code_challenge_method?: string;
   scope?: string;
   prompt?: string;
-}
-
-function clearAuthCookie(response: NextResponse, host: string) {
-  if (host.endsWith('.bagdja.com')) {
-    response.cookies.delete({
-      name: 'bagdja_auth_token',
-      domain: '.bagdja.com',
-      path: '/',
-    });
-  } else {
-    response.cookies.delete('bagdja_auth_token');
-  }
 }
 
 /**
