@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidCodeChallenge, isValidBase64url } from '@/lib/oauth';
+import { isValidCodeChallenge, isValidBase64url, buildOAuthCallbackUrl } from '@/lib/oauth';
 import { cookies } from 'next/headers';
 
 const AUTH_API_BASE = process.env.NEXT_PUBLIC_AUTH_API || 'https://auth.bagdja.com';
@@ -22,6 +22,19 @@ interface AuthorizeParams {
   code_challenge?: string;
   code_challenge_method?: string;
   scope?: string;
+  prompt?: string;
+}
+
+function clearAuthCookie(response: NextResponse, host: string) {
+  if (host.endsWith('.bagdja.com')) {
+    response.cookies.delete({
+      name: 'bagdja_auth_token',
+      domain: '.bagdja.com',
+      path: '/',
+    });
+  } else {
+    response.cookies.delete('bagdja_auth_token');
+  }
 }
 
 /**
@@ -99,6 +112,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       code_challenge: searchParams.get('code_challenge') || undefined,
       code_challenge_method: searchParams.get('code_challenge_method') || 'S256',
       scope: searchParams.get('scope') || 'openid profile email',
+      prompt: searchParams.get('prompt') || undefined,
     };
 
     // Validate parameters
@@ -111,6 +125,24 @@ export async function GET(request: NextRequest): Promise<Response> {
         { error: validation.error || 'Invalid parameters' },
         { status: 400 }
       );
+    }
+
+    const host = request.headers.get('host') || '';
+
+    // Mobile logout flow: force user back to login form and clear SSO cookie.
+    if (params.prompt === 'login') {
+      const authorizeUrl = new URL(request.url);
+      authorizeUrl.searchParams.delete('prompt');
+
+      const loginUrl = new URL('/', request.url);
+      loginUrl.searchParams.set(
+        'authorize_redirect',
+        authorizeUrl.pathname + authorizeUrl.search,
+      );
+
+      const response = NextResponse.redirect(loginUrl);
+      clearAuthCookie(response, host);
+      return response;
     }
 
     // Check if user is authenticated (has session cookie)
@@ -196,12 +228,15 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const { code } = await codeResponse.json();
 
-    // Build callback URL with code and state
-    const redirectUrl = new URL(params.redirect_uri!);
-    redirectUrl.searchParams.set('code', code);
-    redirectUrl.searchParams.set('state', params.state!);
+    // Build callback URL — jangan pakai new URL() untuk custom scheme karena
+    // `com.app://host` menjadi `com.app://host/` (trailing slash) dan AppAuth gagal match.
+    const callbackUrl = buildOAuthCallbackUrl(
+      params.redirect_uri!,
+      code,
+      params.state!,
+    );
 
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(callbackUrl);
   } catch (error) {
     console.error('OAuth authorize error:', error);
     return NextResponse.json(

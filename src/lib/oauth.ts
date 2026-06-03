@@ -203,3 +203,25 @@ export function isValidBase64url(str: string): boolean {
     return false;
   }
 }
+
+/**
+ * Build OAuth callback URL without mutating custom-scheme redirect URIs.
+ * `new URL('com.app://host')` normalizes to `com.app://host/` which breaks mobile AppAuth.
+ */
+export function buildOAuthCallbackUrl(
+  redirectUri: string,
+  code: string,
+  state: string,
+): string {
+  const isHttp = redirectUri.startsWith('http://') || redirectUri.startsWith('https://');
+
+  if (isHttp) {
+    const url = new URL(redirectUri);
+    url.searchParams.set('code', code);
+    url.searchParams.set('state', state);
+    return url.toString();
+  }
+
+  const separator = redirectUri.includes('?') ? '&' : '?';
+  return `${redirectUri}${separator}code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+}
