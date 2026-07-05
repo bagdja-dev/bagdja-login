@@ -420,10 +420,10 @@ function LoginContent() {
                 <a href="#" className="hover:underline">{t.login.privacy}</a>
                 <a href="#" className="hover:underline">{t.login.terms}</a>
               </div>
-              <div>
+              <div className='flex items-center space-x-4'>
                 <a
                   href="/login"
-                  className="ml-4 px-4 py-1 rounded border border-[var(--action-primary)] text-[var(--action-primary)] hover:bg-[var(--action-primary)] hover:text-white transition-colors"
+                  className="text-[var(--action-primary)] hover:underline"
                 >
                   {t.register.signIn}
                 </a>
