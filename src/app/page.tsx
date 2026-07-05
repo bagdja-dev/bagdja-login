@@ -40,9 +40,6 @@ function LoginContent() {
     if (redirect && isValidRedirectUrl(redirect)) {
       setRedirectUrl(redirect);
     }
-    // #region debug-point C:login-page-redirect-param
-    fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'C', location: 'bagdja-login/src/app/page.tsx:useEffect', msg: '[DEBUG] login page loaded with redirect params', data: { redirect, isValidRedirect: !!redirect && isValidRedirectUrl(redirect), authorizeRedirect: searchParams.get('authorize_redirect'), redirectUrlParam: searchParams.get('redirect_url') }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
 
     // Check for success messages from query params
     const registered = searchParams.get('registered');
@@ -76,20 +73,18 @@ function LoginContent() {
 
     try {
       const response = await login({ username, password });
-      // #region debug-point A:login-success
-      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'A', location: 'bagdja-login/src/app/page.tsx:handleSubmit', msg: '[DEBUG] login api returned success', data: { hasAccessToken: !!response.access_token, email: response.user?.email, redirectUrl, isOAuthAuthorize: !!redirectUrl && redirectUrl.includes('/oauth/authorize') }, ts: Date.now() }) }).catch(() => {});
-      // #endregion
-      
+
       // Set session cookie via API route for better reliability
       const sessionResponse = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: response.access_token }),
       });
-      // #region debug-point A:session-cookie-set
-      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'A', location: 'bagdja-login/src/app/page.tsx:handleSubmit', msg: '[DEBUG] session api response received', data: { sessionStatus: sessionResponse.status, sessionOk: sessionResponse.ok, hasDocumentCookie: typeof document !== 'undefined' && document.cookie.includes('bagdja_auth_token=') }, ts: Date.now() }) }).catch(() => {});
-      // #endregion
-      
+
+      if (!sessionResponse.ok) {
+        throw { message: 'Failed to set session cookie', statusCode: sessionResponse.status } as ApiError;
+      }
+
       // Save account to localStorage with token
       try {
         const saved = localStorage.getItem('bagdja_saved_accounts');
@@ -127,10 +122,7 @@ function LoginContent() {
       if (redirectUrl) {
         // If it's an OAuth authorize redirect, go back to it directly without appending token in URL
         const isOAuthAuthorize = redirectUrl.includes('/oauth/authorize');
-        // #region debug-point C:post-login-redirect-choice
-        fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'C', location: 'bagdja-login/src/app/page.tsx:handleSubmit', msg: '[DEBUG] deciding post-login redirect target', data: { redirectUrl, isOAuthAuthorize }, ts: Date.now() }) }).catch(() => {});
-        // #endregion
-        
+
         if (isOAuthAuthorize) {
           // Set user token in sessionStorage for the authorize route to use
           setUserToken(response.access_token);
