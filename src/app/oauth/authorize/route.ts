@@ -107,9 +107,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     // Validate parameters
     const validation = validateParams(params);
     if (!validation.valid) {
-      // #region debug-point C:authorize-invalid-params
-      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'C', location: 'bagdja-login/src/app/oauth/authorize/route.ts:GET', msg: '[DEBUG] authorize params failed validation', data: { error: validation.error, clientId: params.client_id, redirectUri: params.redirect_uri, hasState: !!params.state, hasCodeChallenge: !!params.code_challenge }, ts: Date.now() }) }).catch(() => {});
-      // #endregion
       return NextResponse.json(
         { error: validation.error || 'Invalid parameters' },
         { status: 400 }
@@ -137,15 +134,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     // Check if user is authenticated (has session cookie)
     const cookieStore = await cookies();
     const authCookie = cookieStore.get('bagdja_auth_token')?.value;
-    // #region debug-point A:authorize-cookie-check
-    fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'A', location: 'bagdja-login/src/app/oauth/authorize/route.ts:GET', msg: '[DEBUG] authorize checked auth cookie', data: { hasAuthCookie: !!authCookie, cookieNames: cookieStore.getAll().map((cookie) => cookie.name) }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
 
     if (!authCookie) {
       // Redirect to login page with return URL
-      // #region debug-point A:authorize-redirect-no-cookie
-      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'A', location: 'bagdja-login/src/app/oauth/authorize/route.ts:GET', msg: '[DEBUG] authorize redirecting to login because auth cookie missing', data: { authorizeRedirect: request.nextUrl.pathname + request.nextUrl.search }, ts: Date.now() }) }).catch(() => {});
-      // #endregion
       const loginUrl = new URL('/', request.url);
       loginUrl.searchParams.set('authorize_redirect', request.nextUrl.pathname + request.nextUrl.search);
       return NextResponse.redirect(loginUrl);
@@ -159,15 +150,9 @@ export async function GET(request: NextRequest): Promise<Response> {
         ...(clientToken ? { 'x-api-token': clientToken } : {}),
       },
     });
-    // #region debug-point B:authorize-auth-me-response
-    fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'B', location: 'bagdja-login/src/app/oauth/authorize/route.ts:GET', msg: '[DEBUG] authorize auth/me response received', data: { status: userResponse.status, ok: userResponse.ok, sentAuthorization: !!authCookie, sentClientToken: !!clientToken }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
 
     if (!userResponse.ok) {
       // Invalid or expired session, redirect to login
-      // #region debug-point B:authorize-redirect-auth-me-failed
-      fetch('http://127.0.0.1:7777/event', { method: 'POST', body: JSON.stringify({ sessionId: 'oauth-login-loop', runId: 'pre-fix', hypothesisId: 'B', location: 'bagdja-login/src/app/oauth/authorize/route.ts:GET', msg: '[DEBUG] authorize redirecting to login because auth/me failed', data: { status: userResponse.status, authorizeRedirect: request.nextUrl.pathname + request.nextUrl.search }, ts: Date.now() }) }).catch(() => {});
-      // #endregion
       const loginUrl = new URL('/', request.url);
       loginUrl.searchParams.set('authorize_redirect', request.nextUrl.pathname + request.nextUrl.search);
       return NextResponse.redirect(loginUrl);
