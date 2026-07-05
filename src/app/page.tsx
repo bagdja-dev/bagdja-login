@@ -45,7 +45,7 @@ function LoginContent() {
     const registered = searchParams.get('registered');
     const verified = searchParams.get('verified');
     const reset = searchParams.get('reset');
-    
+
     if (registered === 'true') {
       setSuccess(t.login.registered);
     } else if (verified === 'true') {
@@ -90,10 +90,10 @@ function LoginContent() {
         const saved = localStorage.getItem('bagdja_saved_accounts');
         const accounts: SavedAccount[] = saved ? JSON.parse(saved) : [];
         const accountIndex = accounts.findIndex(acc => acc.email === response.user.email);
-        
+
         // Calculate token expiry (assuming 24 hours, adjust based on your token expiry)
         const tokenExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours from now
-        
+
         const accountData: SavedAccount = {
           email: response.user.email,
           username: response.user.username,
@@ -102,7 +102,7 @@ function LoginContent() {
           token: response.access_token,
           tokenExpiry: tokenExpiry,
         };
-        
+
         if (accountIndex >= 0) {
           // Update existing account
           accounts[accountIndex] = accountData;
@@ -110,7 +110,7 @@ function LoginContent() {
           // Add new account
           accounts.unshift(accountData);
         }
-        
+
         // Keep only last 5 accounts
         const limitedAccounts = accounts.slice(0, 5);
         localStorage.setItem('bagdja_saved_accounts', JSON.stringify(limitedAccounts));
@@ -170,7 +170,7 @@ function LoginContent() {
         return;
       }
     }
-    
+
     // Token expired or doesn't exist, show form to enter password
     setUsername(account.email);
     setShowForm(true);
@@ -188,7 +188,7 @@ function LoginContent() {
 
   const handleLogout = async (e: React.MouseEvent, account: SavedAccount) => {
     e.stopPropagation(); // Prevent triggering handleSelectAccount
-    
+
     // Clear session cookie via API route
     await fetch('/api/auth/session', { method: 'DELETE' });
 
@@ -225,7 +225,7 @@ function LoginContent() {
     <div className="flex min-h-screen items-center justify-center relative overflow-hidden px-4 py-12" style={{ backgroundImage: 'url(/ilustration.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       {/* Dark Overlay for better readability */}
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--bg-main)]/90 via-[var(--bg-main)]/80 to-[var(--bg-main)]/90"></div>
-      
+
       <div className="w-full max-w-md relative z-10">
         {/* Google-like Modal Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden animate-fade-in">
@@ -383,8 +383,8 @@ function LoginContent() {
                     type="button"
                     variant="outline"
                     className="w-full border font-medium transition-all duration-200 hover:bg-gray-50"
-                    style={{ 
-                      borderColor: '#d1d5db', 
+                    style={{
+                      borderColor: '#d1d5db',
                       color: '#374151',
                       backgroundColor: 'transparent'
                     }}
@@ -421,6 +421,12 @@ function LoginContent() {
                 <a href="#" className="hover:underline">{t.login.terms}</a>
               </div>
               <div>
+                <a
+                  href="/login"
+                  className="ml-4 px-4 py-1 rounded border border-[var(--action-primary)] text-[var(--action-primary)] hover:bg-[var(--action-primary)] hover:text-white transition-colors"
+                >
+                  {t.register.signIn}
+                </a>
                 <a href={`/register${searchParams.toString() ? `?${searchParams.toString()}` : ''}`} className="text-[var(--action-primary)] hover:underline">
                   {t.login.createAccount}
                 </a>
