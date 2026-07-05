@@ -422,7 +422,7 @@ function LoginContent() {
               </div>
               <div className='flex items-center space-x-4'>
                 <a
-                  href="/login"
+                  href={`/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
                   className="text-[var(--action-primary)] hover:underline"
                 >
                   {t.register.signIn}
