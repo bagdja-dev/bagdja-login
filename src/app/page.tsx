@@ -207,18 +207,44 @@ function LoginContent() {
     }
   };
 
-  // Get app name from redirect URL
+  // Get app name from redirect URL. Note: for the real OAuth flow (used by e.g. Netsafe's
+  // mobile app), `redirectUrl` here is actually the wrapped `authorize_redirect` value —
+  // something like "/oauth/authorize?client_id=netsafe&redirect_uri=...&..." — not an absolute
+  // URL, so `new URL(redirectUrl)` throws and this used to silently fall back to generic
+  // "Bagdja" for every real client app. Read `client_id` directly instead; it's the one
+  // reliable signal regardless of which redirect shape we were given.
   const getAppName = () => {
     if (!redirectUrl) return 'Bagdja';
+
+    const KNOWN_APP_NAMES: Record<string, string> = {
+      netsafe: 'Netsafe',
+      console: 'Bagdja Console',
+      store: 'Bagdja Store',
+      pos: 'Bagdja POS',
+    };
+
+    try {
+      const query = redirectUrl.includes('?') ? redirectUrl.split('?')[1] : redirectUrl;
+      const clientId = new URLSearchParams(query).get('client_id');
+      if (clientId) {
+        return KNOWN_APP_NAMES[clientId] ?? clientId.charAt(0).toUpperCase() + clientId.slice(1);
+      }
+    } catch {
+      // fall through to the legacy absolute-URL path below
+    }
+
+    // Legacy path: redirectUrl might be a plain absolute URL (the simpler `redirect_url` case,
+    // not the OAuth `authorize_redirect` one), so fall back to hostname sniffing.
     try {
       const url = new URL(redirectUrl);
       const hostname = url.hostname;
       if (hostname.includes('console')) return 'Bagdja Console';
       if (hostname.includes('store')) return 'Bagdja Store';
-      return 'Bagdja';
     } catch {
-      return 'Bagdja';
+      // ignore
     }
+
+    return 'Bagdja';
   };
 
   return (
