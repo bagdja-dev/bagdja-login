@@ -48,6 +48,7 @@ function LoginContent() {
   // selesai ATAU logo brand belum selesai dimuat; 'error' = gambar gagal.
   const [brandingFetched, setBrandingFetched] = useState(false);
   const [brandLogoStatus, setBrandLogoStatus] = useState<'pending' | 'loaded' | 'error'>('pending');
+  const [brandBackgroundStatus, setBrandBackgroundStatus] = useState<'pending' | 'loaded' | 'error'>('pending');
   // Dibaca langsung dari URL saat render (bukan dari state `redirectUrl`
   // yang baru terisi setelah effect) supaya skeleton sudah tampil sejak
   // paint pertama — logo Bagdja tidak sempat muncul lalu berganti.
@@ -127,6 +128,34 @@ function LoginContent() {
   // brand termuat. Tanpa logo brand (atau gagal) → langsung logo Bagdja.
   const showBrandSkeleton =
     hasBrandParam && (!brandingFetched || (Boolean(brandLogoUrl) && brandLogoStatus === 'pending'));
+
+  // Background brand: dimuat dulu di belakang layar (Image()), baru dipasang
+  // setelah onload — selama itu skeleton, supaya ilustrasi Bagdja tidak
+  // sempat tampil lalu berganti. Gagal → kembali ke ilustrasi Bagdja.
+  const brandBackgroundUrl = branding?.backgroundUrl ?? null;
+  useEffect(() => {
+    if (!brandBackgroundUrl) return;
+    setBrandBackgroundStatus('pending');
+    let cancelled = false;
+    const img = new window.Image();
+    img.onload = () => {
+      if (!cancelled) setBrandBackgroundStatus('loaded');
+    };
+    img.onerror = () => {
+      if (!cancelled) setBrandBackgroundStatus('error');
+    };
+    img.src = brandBackgroundUrl;
+    return () => {
+      cancelled = true;
+    };
+  }, [brandBackgroundUrl]);
+
+  const showBackgroundSkeleton =
+    hasBrandParam &&
+    (!brandingFetched || (Boolean(brandBackgroundUrl) && brandBackgroundStatus === 'pending'));
+  const pageBackgroundImage = showBackgroundSkeleton
+    ? 'none'
+    : `url("${brandBackgroundUrl && brandBackgroundStatus === 'loaded' ? encodeURI(brandBackgroundUrl) : '/ilustration.png'}")`;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -354,7 +383,10 @@ function LoginContent() {
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center relative overflow-hidden px-4 py-12" style={{ backgroundImage: `url("${branding?.backgroundUrl ? encodeURI(branding.backgroundUrl) : '/ilustration.png'}")`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+    <div className="flex min-h-screen items-center justify-center relative overflow-hidden px-4 py-12 bg-[var(--bg-main)]" style={{ backgroundImage: pageBackgroundImage, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+      {showBackgroundSkeleton && (
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/5 via-white/10 to-white/5" aria-hidden="true" />
+      )}
       {/* Dark Overlay for better readability */}
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--bg-main)]/90 via-[var(--bg-main)]/80 to-[var(--bg-main)]/90"></div>
 
@@ -571,7 +603,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center relative overflow-hidden" style={{ backgroundImage: 'url(/ilustration.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+        // Fallback netral (tanpa ilustrasi Bagdja) — halaman bisa membawa
+        // `brand`, ilustrasi di sini akan tampil sesaat lalu berganti.
+        <div className="flex min-h-screen items-center justify-center relative overflow-hidden bg-[var(--bg-main)]">
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--bg-main)]/90 via-[var(--bg-main)]/80 to-[var(--bg-main)]/90"></div>
           <div className="text-center relative z-10">
             <div className="mb-4 text-white">Loading...</div>
