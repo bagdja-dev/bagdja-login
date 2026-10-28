@@ -9,7 +9,7 @@ import { getLanguageFromUrl, getTranslations } from '@/lib/translations';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Input } from '@/ui/input';
 import { Button } from '@/ui/button';
-import type { ApiError } from '@/types';
+import type { ApiError, LoginBranding } from '@/types';
 
 interface SavedAccount {
   email: string;
@@ -18,6 +18,16 @@ interface SavedAccount {
   lastLogin?: string;
   token?: string;
   tokenExpiry?: number; // timestamp in milliseconds
+}
+
+/**
+ * Query string dari `authorize_redirect` ("/oauth/authorize?client_id=...&brand=...")
+ * atau `redirect_url` biasa — sumber `client_id` & `brand` untuk branding.
+ */
+function getAuthorizeParams(redirectUrl: string | null): URLSearchParams | null {
+  if (!redirectUrl) return null;
+  const query = redirectUrl.includes('?') ? redirectUrl.split('?')[1] : redirectUrl;
+  return new URLSearchParams(query);
 }
 
 function LoginContent() {
@@ -33,6 +43,19 @@ function LoginContent() {
   const [showForm, setShowForm] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [branding, setBranding] = useState<LoginBranding | null>(null);
+  // Status branding untuk skeleton: 'pending' selama /api/branding belum
+  // selesai ATAU logo brand belum selesai dimuat; 'error' = gambar gagal.
+  const [brandingFetched, setBrandingFetched] = useState(false);
+  const [brandLogoStatus, setBrandLogoStatus] = useState<'pending' | 'loaded' | 'error'>('pending');
+  // Dibaca langsung dari URL saat render (bukan dari state `redirectUrl`
+  // yang baru terisi setelah effect) supaya skeleton sudah tampil sejak
+  // paint pertama — logo Bagdja tidak sempat muncul lalu berganti.
+  const rawRedirect = searchParams.get('redirect_url') ?? searchParams.get('authorize_redirect');
+  const authorizeParams = isValidRedirectUrl(rawRedirect) ? getAuthorizeParams(rawRedirect) : null;
+  const brandingClientId = authorizeParams?.get('client_id') ?? null;
+  const brandParam = authorizeParams?.get('brand') ?? null;
+  const hasBrandParam = Boolean(brandingClientId && brandParam);
 
   useEffect(() => {
     // Get redirect_url from query params
@@ -65,6 +88,45 @@ function LoginContent() {
       // Ignore errors
     }
   }, [searchParams]);
+
+  // Branding per client app / brand (28 Okt 2026) — logo, background, nama
+  // diambil dari /api/branding (client app di console + brandingUrl opsional).
+  // Gagal/kosong = tetap default Bagdja.
+  useEffect(() => {
+    if (!brandingClientId) {
+      setBranding(null);
+      setBrandingFetched(true);
+      return;
+    }
+
+    setBrandingFetched(false);
+    const query = new URLSearchParams({ client_id: brandingClientId });
+    if (brandParam) query.set('brand', brandParam);
+
+    let cancelled = false;
+    fetch(`/api/branding?${query.toString()}`)
+      .then((res) => (res.ok ? (res.json() as Promise<LoginBranding>) : null))
+      .then((data) => {
+        if (cancelled) return;
+        setBranding(data);
+        setBrandLogoStatus('pending');
+      })
+      .catch(() => {
+        // Ignore errors — default Bagdja branding stays
+      })
+      .finally(() => {
+        if (!cancelled) setBrandingFetched(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [brandingClientId, brandParam]);
+
+  const brandLogoUrl = brandLogoStatus === 'error' ? null : branding?.logoUrl ?? null;
+  // Skeleton hanya saat ada `brand`: tunggu fetch selesai, lalu tunggu logo
+  // brand termuat. Tanpa logo brand (atau gagal) → langsung logo Bagdja.
+  const showBrandSkeleton =
+    hasBrandParam && (!brandingFetched || (Boolean(brandLogoUrl) && brandLogoStatus === 'pending'));
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -214,6 +276,7 @@ function LoginContent() {
   // "Bagdja" for every real client app. Read `client_id` directly instead; it's the one
   // reliable signal regardless of which redirect shape we were given.
   const getAppName = () => {
+    if (branding?.name) return branding.name;
     if (!redirectUrl) return 'Bagdja';
 
     const KNOWN_APP_NAMES: Record<string, string> = {
@@ -224,8 +287,7 @@ function LoginContent() {
     };
 
     try {
-      const query = redirectUrl.includes('?') ? redirectUrl.split('?')[1] : redirectUrl;
-      const clientId = new URLSearchParams(query).get('client_id');
+      const clientId = getAuthorizeParams(redirectUrl)?.get('client_id');
       if (clientId) {
         return KNOWN_APP_NAMES[clientId] ?? clientId.charAt(0).toUpperCase() + clientId.slice(1);
       }
@@ -248,7 +310,7 @@ function LoginContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center relative overflow-hidden px-4 py-12" style={{ backgroundImage: 'url(/ilustration.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+    <div className="flex min-h-screen items-center justify-center relative overflow-hidden px-4 py-12" style={{ backgroundImage: `url("${branding?.backgroundUrl ? encodeURI(branding.backgroundUrl) : '/ilustration.png'}")`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       {/* Dark Overlay for better readability */}
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--bg-main)]/90 via-[var(--bg-main)]/80 to-[var(--bg-main)]/90"></div>
 
@@ -260,24 +322,56 @@ function LoginContent() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1"></div>
               <div className="flex items-center justify-center flex-1">
-                <Image
-                  src="/logo bagdja.png"
-                  alt="Bagdja Logo"
-                  width={60}
-                  height={60}
-                  className="object-contain"
-                  priority
-                />
+                {showBrandSkeleton && (
+                  <div
+                    className="h-[60px] w-[60px] rounded-lg bg-gray-200 animate-pulse flex items-center justify-center"
+                    aria-label="Loading logo"
+                  >
+                    <Image src="/logo bagdja.png" alt="" width={32} height={32} className="object-contain opacity-30 grayscale" priority />
+                  </div>
+                )}
+                {brandLogoUrl ? (
+                  // Dirender (tersembunyi) selama skeleton supaya gambar mulai dimuat;
+                  // tampil begitu onLoad. Gagal → kembali ke logo Bagdja.
+                  // eslint-disable-next-line @next/next/no-img-element -- logo dari URL eksternal client app, next/image butuh domain terdaftar
+                  <img
+                    src={brandLogoUrl}
+                    alt={`${getAppName()} Logo`}
+                    width={60}
+                    height={60}
+                    className={`h-[60px] w-[60px] object-contain ${showBrandSkeleton ? 'hidden' : ''}`}
+                    onLoad={() => setBrandLogoStatus('loaded')}
+                    onError={() => setBrandLogoStatus('error')}
+                  />
+                ) : !showBrandSkeleton && (
+                  <Image
+                    src="/logo bagdja.png"
+                    alt="Bagdja Logo"
+                    width={60}
+                    height={60}
+                    className="object-contain"
+                    priority
+                  />
+                )}
               </div>
               <div className="flex-1 flex justify-end">
                 <LanguageSwitcher />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-center" style={{ color: '#1a1a1a' }}>
+            <h1 className="text-2xl font-bold text-center flex items-center justify-center gap-2" style={{ color: '#1a1a1a' }}>
+              {/* Logo app custom → tanda Bagdja tetap ada di judul (co-branding) */}
+              {brandLogoUrl && !showBrandSkeleton && (
+                <Image src="/logo bagdja.png" alt="" width={24} height={24} className="object-contain" />
+              )}
               {t.login.title}
             </h1>
             <p className="text-sm text-center mt-1 font-medium" style={{ color: '#666' }}>
-              {t.login.subtitle} {getAppName()}
+              {t.login.subtitle}{' '}
+              {showBrandSkeleton ? (
+                <span className="inline-block h-3 w-20 rounded bg-gray-200 animate-pulse align-middle" aria-hidden="true" />
+              ) : (
+                getAppName()
+              )}
             </p>
           </div>
 

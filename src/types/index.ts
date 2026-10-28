@@ -90,3 +90,10 @@ export interface ClientTokenResponse {
   token_type: string;
   expires_in: number;
 }
+
+/** Branding halaman login hasil GET /api/branding — null = pakai default Bagdja. */
+export interface LoginBranding {
+  name: string | null;
+  logoUrl: string | null;
+  backgroundUrl: string | null;
+}
