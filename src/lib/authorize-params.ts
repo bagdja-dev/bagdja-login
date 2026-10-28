@@ -11,6 +11,11 @@ export function getAuthorizeParams(redirectUrl: string | null): URLSearchParams 
   return new URLSearchParams(query);
 }
 
+/** Nilai pertama query param dari `searchParams` server component. */
+export function firstParam(value: string | string[] | undefined): string | null {
+  return (Array.isArray(value) ? value[0] : value) ?? null;
+}
+
 /** `client_id` & `brand` dari redirect mentah; null kalau redirect tidak valid. */
 export function getBrandingSource(rawRedirect: string | null): { clientId: string; brand: string | null } | null {
   if (!isValidRedirectUrl(rawRedirect)) return null;

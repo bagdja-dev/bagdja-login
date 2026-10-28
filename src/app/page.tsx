@@ -1,14 +1,10 @@
 import { Suspense } from 'react';
 import { preload } from 'react-dom';
-import { getBrandingSource } from '@/lib/authorize-params';
+import { firstParam, getBrandingSource } from '@/lib/authorize-params';
 import { getLoginBranding } from '@/lib/branding';
 import { LoginContent } from './login-content';
 
 type SearchParams = Record<string, string | string[] | undefined>;
-
-function firstParam(value: string | string[] | undefined): string | null {
-  return (Array.isArray(value) ? value[0] : value) ?? null;
-}
 
 /**
  * Halaman login — branding (nama, logo, background per client app / brand)
