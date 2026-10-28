@@ -41,6 +41,38 @@ export function LoginContent({ initialBranding }: LoginContentProps) {
   const [showForm, setShowForm] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  useEffect(() => {
+    // Get redirect_url from query params
+    const redirect = getRedirectUrl();
+    if (redirect && isValidRedirectUrl(redirect)) {
+      setRedirectUrl(redirect);
+    }
+
+    // Check for success messages from query params
+    const registered = searchParams.get('registered');
+    const verified = searchParams.get('verified');
+    const reset = searchParams.get('reset');
+
+    if (registered === 'true') {
+      setSuccess(t.login.registered);
+    } else if (verified === 'true') {
+      setSuccess(t.login.verified);
+    } else if (reset === 'true') {
+      setSuccess(t.login.resetSuccess);
+    }
+
+    // Load saved accounts from localStorage
+    try {
+      const saved = localStorage.getItem('bagdja_saved_accounts');
+      if (saved) {
+        const accounts = JSON.parse(saved) as SavedAccount[];
+        setSavedAccounts(accounts);
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, [searchParams]);
+
   // Branding sudah diambil server-side (SSR, 29 Okt 2026) — nama app benar
   // sejak HTML pertama. Yang masih ditunggu di client hanya gambarnya:
   // logo & background tampil skeleton sampai termuat, gagal → default Bagdja.
