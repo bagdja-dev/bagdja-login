@@ -166,6 +166,23 @@ export function isValidRedirectUrl(url: string | null): boolean {
 }
 
 /**
+ * Waktu kedaluwarsa token (ms) dari klaim `exp` JWT, atau null bila tidak
+ * terbaca. Hanya membaca payload — verifikasi tetap di backend.
+ */
+export function getTokenExpiry(token: string | undefined | null): number | null {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    const exp = (JSON.parse(json) as { exp?: unknown }).exp;
+    return typeof exp === 'number' ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Build redirect URL with token
  * Preserves existing query params (like redirect_url)
  */
