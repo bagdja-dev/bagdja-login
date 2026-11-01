@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { login, getGoogleLoginUrl } from '@/lib/api';
-import { getRedirectUrl, isValidRedirectUrl, buildRedirectUrl, setUserToken } from '@/lib/auth';
+import { getRedirectUrl, isValidRedirectUrl, buildRedirectUrl, setUserToken, getTokenExpiry } from '@/lib/auth';
 import { getLanguageFromUrl, getTranslations } from '@/lib/translations';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Input } from '@/ui/input';
@@ -139,8 +139,10 @@ export function LoginContent({ initialBranding }: LoginContentProps) {
         const accounts: SavedAccount[] = saved ? JSON.parse(saved) : [];
         const accountIndex = accounts.findIndex(acc => acc.email === response.user.email);
 
-        // Calculate token expiry (assuming 24 hours, adjust based on your token expiry)
-        const tokenExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours from now
+        // Masa berlaku dari klaim `exp` token (default bagdja-auth 1 jam) —
+        // jangan diasumsikan 24 jam: token kedaluwarsa yang dikirim ke app
+        // (mis. pay-web) ditolak dan user terjebak di layar login.
+        const tokenExpiry = getTokenExpiry(response.access_token) ?? Date.now() + 60 * 60 * 1000;
 
         const accountData: SavedAccount = {
           email: response.user.email,
@@ -192,8 +194,11 @@ export function LoginContent({ initialBranding }: LoginContentProps) {
   };
 
   const handleSelectAccount = async (account: SavedAccount) => {
-    // Check if account has valid token
-    if (account.token && account.tokenExpiry && account.tokenExpiry > Date.now()) {
+    // Token dianggap masih berlaku bila `exp`-nya > 1 menit lagi. Akun yang
+    // tersimpan sebelum perbaikan ini (tokenExpiry diasumsikan 24 jam)
+    // ikut terkoreksi karena `exp` dibaca langsung dari token.
+    const tokenExpiry = getTokenExpiry(account.token) ?? account.tokenExpiry ?? 0;
+    if (account.token && tokenExpiry > Date.now() + 60 * 1000) {
       // Set session cookie via API route
       await fetch('/api/auth/session', {
         method: 'POST',
