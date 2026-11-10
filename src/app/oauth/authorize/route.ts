@@ -24,6 +24,7 @@ interface AuthorizeParams {
   code_challenge_method?: string;
   scope?: string;
   prompt?: string;
+  login_hint?: string;
 }
 
 /**
@@ -102,6 +103,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       code_challenge_method: searchParams.get('code_challenge_method') || 'S256',
       scope: searchParams.get('scope') || 'openid profile email',
       prompt: searchParams.get('prompt') || undefined,
+      login_hint: searchParams.get('login_hint') || undefined,
     };
 
     // Validate parameters
@@ -110,6 +112,12 @@ export async function GET(request: NextRequest): Promise<Response> {
       return NextResponse.json(
         { error: validation.error || 'Invalid parameters' },
         { status: 400 }
+      );
+    }
+    if (params.login_hint && params.login_hint.length > 320) {
+      return NextResponse.json(
+        { error: 'login_hint must be 320 characters or fewer' },
+        { status: 400 },
       );
     }
 
@@ -125,6 +133,9 @@ export async function GET(request: NextRequest): Promise<Response> {
         'authorize_redirect',
         authorizeUrl.pathname + authorizeUrl.search,
       );
+      if (params.login_hint) {
+        loginUrl.searchParams.set('email', params.login_hint);
+      }
 
       const response = NextResponse.redirect(loginUrl);
       clearAuthCookie(response, host);
@@ -139,6 +150,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       // Redirect to login page with return URL
       const loginUrl = new URL('/', request.url);
       loginUrl.searchParams.set('authorize_redirect', request.nextUrl.pathname + request.nextUrl.search);
+      if (params.login_hint) {
+        loginUrl.searchParams.set('email', params.login_hint);
+      }
       return NextResponse.redirect(loginUrl);
     }
 
@@ -155,6 +169,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       // Invalid or expired session, redirect to login
       const loginUrl = new URL('/', request.url);
       loginUrl.searchParams.set('authorize_redirect', request.nextUrl.pathname + request.nextUrl.search);
+      if (params.login_hint) {
+        loginUrl.searchParams.set('email', params.login_hint);
+      }
       return NextResponse.redirect(loginUrl);
     }
 
