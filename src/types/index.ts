@@ -8,11 +8,17 @@ export interface RegisterRequest {
   username: string;
   password: string;
   redirectUri?: string;
+  verificationMode?: 'link' | 'otp';
 }
 
 export interface AuthResponse {
   access_token: string;
   user: User;
+}
+
+export interface VerifyRegistrationOtpRequest {
+  email: string;
+  code: string;
 }
 
 export interface MeResponse {
