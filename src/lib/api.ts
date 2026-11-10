@@ -13,6 +13,7 @@ import type {
   AuthResponse, 
   LoginRequest, 
   RegisterRequest, 
+  VerifyRegistrationOtpRequest,
   User, 
   ApiError,
   MeResponse,
@@ -140,10 +141,29 @@ export async function register(data: RegisterRequest): Promise<AuthResponse> {
   if (data.redirectUri && typeof data.redirectUri === 'string' && data.redirectUri.trim().length > 0) {
     cleanData.redirectUri = data.redirectUri;
   }
+  if (data.verificationMode) {
+    cleanData.verificationMode = data.verificationMode;
+  }
   
   return apiRequest<AuthResponse>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(cleanData),
+  });
+}
+
+export async function verifyRegistrationOtp(
+  data: VerifyRegistrationOtpRequest,
+): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>('/auth/register/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function resendRegistrationOtp(email: string): Promise<MessageResponse> {
+  return apiRequest<MessageResponse>('/auth/register/resend-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   });
 }
 

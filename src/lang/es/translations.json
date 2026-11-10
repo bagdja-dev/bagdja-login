@@ -29,7 +29,16 @@
     "signUpWithGoogle": "Registrarse con Google",
     "alreadyHaveAccount": "¿Ya tienes una cuenta?",
     "signIn": "Iniciar sesión",
-    "registrationFailed": "Error en el registro. Por favor intente de nuevo."
+    "registrationFailed": "Error en el registro. Por favor intente de nuevo.",
+    "otpSent": "Se envió un código de verificación a tu correo electrónico.",
+    "otpInstruction": "Ingresa el código de 6 dígitos enviado a",
+    "otpCode": "Código de verificación",
+    "otpVerificationFailed": "No se pudo verificar el código. Revísalo e inténtalo de nuevo.",
+    "verifyOtp": "Verificar y continuar",
+    "verifyingOtp": "Verificando...",
+    "resendOtp": "Reenviar código",
+    "otpResent": "Si esta cuenta puede recibir un código, se enviará uno nuevo pronto.",
+    "otpResendFailed": "No se pudo reenviar el código. Inténtalo de nuevo."
   },
   "callback": {
     "completingAuth": "Completando autenticación...",

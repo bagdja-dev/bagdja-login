@@ -29,7 +29,16 @@
     "signUpWithGoogle": "使用 Google 注册",
     "alreadyHaveAccount": "已有账户？",
     "signIn": "登录",
-    "registrationFailed": "注册失败。请重试。"
+    "registrationFailed": "注册失败。请重试。",
+    "otpSent": "验证码已发送到您的电子邮件。",
+    "otpInstruction": "请输入发送至以下地址的 6 位验证码：",
+    "otpCode": "验证码",
+    "otpVerificationFailed": "验证码失败，请检查后重试。",
+    "verifyOtp": "验证并继续",
+    "verifyingOtp": "正在验证...",
+    "resendOtp": "重新发送验证码",
+    "otpResent": "如果此账户可以接收验证码，新验证码将很快发送。",
+    "otpResendFailed": "无法重新发送验证码，请重试。"
   },
   "callback": {
     "completingAuth": "完成身份验证...",
