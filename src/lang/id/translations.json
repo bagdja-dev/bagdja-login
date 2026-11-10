@@ -29,7 +29,16 @@
     "signUpWithGoogle": "Daftar dengan Google",
     "alreadyHaveAccount": "Sudah punya akun?",
     "signIn": "Masuk",
-    "registrationFailed": "Registrasi gagal. Silakan coba lagi."
+    "registrationFailed": "Registrasi gagal. Silakan coba lagi.",
+    "otpSent": "Kode verifikasi telah dikirim ke email Anda.",
+    "otpInstruction": "Masukkan kode 6 digit yang dikirim ke",
+    "otpCode": "Kode verifikasi",
+    "otpVerificationFailed": "Verifikasi kode gagal. Periksa kode dan coba lagi.",
+    "verifyOtp": "Verifikasi dan lanjutkan",
+    "verifyingOtp": "Memverifikasi...",
+    "resendOtp": "Kirim ulang kode",
+    "otpResent": "Jika akun dapat menerima kode, kode baru akan segera dikirim.",
+    "otpResendFailed": "Gagal mengirim ulang kode. Silakan coba lagi."
   },
   "callback": {
     "completingAuth": "Menyelesaikan autentikasi...",
