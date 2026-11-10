@@ -29,7 +29,16 @@
     "signUpWithGoogle": "Sign up with Google",
     "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign in",
-    "registrationFailed": "Registration failed. Please try again."
+    "registrationFailed": "Registration failed. Please try again.",
+    "otpSent": "A verification code has been sent to your email.",
+    "otpInstruction": "Enter the 6-digit code sent to",
+    "otpCode": "Verification code",
+    "otpVerificationFailed": "Code verification failed. Check the code and try again.",
+    "verifyOtp": "Verify and continue",
+    "verifyingOtp": "Verifying...",
+    "resendOtp": "Resend code",
+    "otpResent": "If this account can receive a code, a new one will be sent shortly.",
+    "otpResendFailed": "Could not resend the code. Please try again."
   },
   "callback": {
     "completingAuth": "Completing authentication...",
