@@ -47,6 +47,10 @@ export function LoginContent({ initialBranding }: LoginContentProps) {
     if (redirect && isValidRedirectUrl(redirect)) {
       setRedirectUrl(redirect);
     }
+    const emailHint = searchParams.get('email');
+    if (emailHint && emailHint.length <= 320) {
+      setUsername(emailHint);
+    }
 
     // Check for success messages from query params
     const registered = searchParams.get('registered');

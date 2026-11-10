@@ -29,7 +29,11 @@ function RegisterContent() {
     if (redirect && isValidRedirectUrl(redirect)) {
       setRedirectUrl(redirect);
     }
-  }, []);
+    const emailHint = searchParams.get('email');
+    if (emailHint && emailHint.length <= 320) {
+      setEmail(emailHint);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,9 +65,9 @@ function RegisterContent() {
       await register(registerData);
       
       // Redirect to login with success message
-      const loginUrl = redirectUrl 
-        ? `/?registered=true&redirect_url=${encodeURIComponent(redirectUrl)}&lang=${lang}`
-        : `/?registered=true&lang=${lang}`;
+      const loginUrl = redirectUrl
+        ? `/?registered=true&redirect_url=${encodeURIComponent(redirectUrl)}&email=${encodeURIComponent(email)}&lang=${lang}`
+        : `/?registered=true&email=${encodeURIComponent(email)}&lang=${lang}`;
       router.push(loginUrl);
     } catch (err) {
       const apiError = err as ApiError;
